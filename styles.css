@@ -1,0 +1,205 @@
+/* Definição de cores */
+:root {
+    --primary-color: #4A90E2;  /* Azul suave */
+    --background-color: #f5f7fa;  /* Fundo claro */
+    --input-bg-color: #fff;  /* Branco puro para inputs */
+    --input-border-color: #ccd0d5;  /* Cinza claro para bordas */
+    --text-color: #333;  /* Cinza escuro para texto */
+    --button-bg-color: #4A90E2;  /* Azul para botões */
+    --button-text-color: #fff;  /* Branco para texto de botões */
+    --button-hover-color: #357ABD;  /* Azul mais escuro para hover */
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Ajusta o padding do container principal para não ficar oculto pelo cabeçalho */
+.main-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+    box-sizing: border-box;
+    margin-top: 60px; /* Adiciona espaço no topo do container para o cabeçalho */
+    margin-bottom: 50px; /* Espaço para o rodapé */
+}
+
+/* Container para o formulário */
+.form-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 48%; /* Aproximadamente metade da largura do container principal */
+    box-sizing: border-box;
+}
+
+/* Container para o resultado */
+.output-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 48%; /* Aproximadamente metade da largura do container principal */
+    box-sizing: border-box;
+    position: relative; /* Permite posicionar o ícone dentro da caixa */
+}
+
+/* Container para o decoder/encoder de URL */
+.decoder-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Largura total disponível */
+    max-width: 1200px; /* Largura máxima para manter o design responsivo */
+    box-sizing: border-box;
+    margin-top: 20px; /* Espaço acima do container */
+}
+
+/* Ajustes para dispositivos móveis */
+@media (max-width: 768px) {
+    .main-container {
+        flex-direction: column; /* Empilha os containers verticalmente em telas pequenas */
+        align-items: center; /* Centraliza os containers em telas pequenas */
+    }
+
+    .form-container, .output-container {
+        width: 100%; /* Remove largura máxima em telas pequenas */
+    }
+}
+
+h1 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 10px; /* Pequena margem entre os títulos */
+}
+
+h2 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 20px; /* Espaçamento entre o título e o formulário */
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 14px;
+}
+
+input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid var(--input-border-color);
+    background-color: var(--input-bg-color);
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+input:focus, select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.2);
+}
+
+button {
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: var(--button-hover-color);
+}
+
+pre {
+    background-color: #f9fafc;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid var(--input-border-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-top: 20px;
+    position: relative; /* Permite posicionar o ícone dentro da caixa */
+}
+
+#copyIcon {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    cursor: pointer;
+    color: var(--primary-color);
+    font-size: 16px;
+}
+
+#copyIcon:hover {
+    color: var(--button-hover-color);
+}
+
+textarea {
+    background: #EEF;
+    width: 100%;
+    height: 150px; /* Ajuste a altura conforme necessário */
+}
+
+/* Rodapé com assinatura */
+.footer {
+    background-color: #ffffff00;
+    padding: 10px 20px; /* Padding para garantir espaço ao redor do texto */
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: auto; /* Ajusta a largura do rodapé para o conteúdo */
+    
+    font-size: 12px;
+    font-style: italic;
+    font-family: 'Georgia', serif;
+    color: var(--text-color);
+    z-index: 1000; /* Garante que o rodapé esteja sobre outros elementos */
+}
+
+/* Cabeçalho */
+.header {
+    padding: 10px 20px; /* Padding para espaço ao redor do texto */
+    width: 100%;
+    text-align: center; /* Centraliza o texto dentro do cabeçalho */
+    position: fixed;
+    top: 0;
+    left: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    background-color: #fff; /* Fundo branco para o cabeçalho */
+}
+
+/* Estiliza o link no cabeçalho */
+.header a {
+    font-family: 'Georgia', serif; /* Usa a mesma fonte da assinatura */
+    font-size: 15px; /* Tamanho da fonte do cabeçalho */
+    color: var(--primary-color); /* Cor do texto */
+    text-decoration: none; /* Remove o sublinhado padrão dos links */
+    font-style: italic; /* Fonte em itálico */
+}
+
+.header a:hover {
+    text-decoration: underline; /* Adiciona sublinhado ao passar o mouse sobre o link */
+}

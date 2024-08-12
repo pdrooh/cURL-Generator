@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de cURL</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <!-- Cabeçalho com link para documentação -->
+<div class="header">
+    <a href="https://documenter.getpostman.com/view/24605757/2sA3BhfaDg#intro" target="_blank">Documentação</a>
+</div>
+
+    <div class="main-container">
+        <div class="form-container">
+            <h1>Gerador de cURL</h1>
+            <h2>Preencha os campos abaixo:</h2>
+            <form id="textTemplateForm">
+                <label for="url">URL:</label>
+                <input placeholder="Link da plataforma" type="text" id="url" name="url" required>
+
+                <label for="authToken">Token de Autorização:</label>
+                <input type="text" id="authToken" placeholder="Token" name="authToken" required>
+
+                <label for="number">Número do Contato:</label>
+                <input type="text" placeholder="Telefone" id="number" name="number" required>
+
+                <label for="serviceId">ID da Conexão:</label>
+                <input type="text" placeholder="ID da conexão" id="serviceId" name="serviceId" required>
+
+                <label for="hsmId">ID do Template:</label>
+                <input type="text" placeholder="ID do template" id="hsmId" name="hsmId" required>
+
+                <label for="paramCount">Quantidade de Parâmetros:</label>
+                <input type="number" id="paramCount" name="paramCount" required onchange="updateParameterFields()">
+
+                <div id="parametros-container"></div>
+
+                <button type="button" onclick="generateCurl()">Gerar cURL</button>
+            </form>
+        </div>
+
+        <div class="output-container">
+            <h1>Resultado</h1>
+            <div class="output-wrapper">
+                <pre id="curlOutput"></pre>
+                <i id="copyIcon" class="fas fa-copy" onclick="copyToClipboard()"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campo de Decoder/Encoder -->
+<div class="decoder-container">
+    <h2>Decoder/Encoder de URL</h2>
+    <textarea id="dencoder" placeholder="Digite ou cole a URL aqui..."></textarea>
+    <div class="button-container">
+        <input type="button" onclick="decode()" value="Decodificar">
+        <input type="button" onclick="encode()" value="Codificar">
+    </div>
+</div>
+
+<footer class="footer">
+    <p>By Pedro Rodrigues</p>
+</footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
