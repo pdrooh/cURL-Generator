@@ -185,8 +185,21 @@ function loadFormData() {
   document.getElementById('hsmId').value = hsmId;
   document.getElementById('paramCount').value = paramCount;
 
+  // Carregar o token salvo para o campo apiToken também
+  document.getElementById('apiToken').value = authToken;
+
   updateParameterFields();
+
+  // Carregar parâmetros salvos
+  const savedParams = JSON.parse(localStorage.getItem('parameters')) || [];
+  savedParams.forEach((param, index) => {
+    const paramInput = document.querySelector(`input[name='param${index}']`);
+    if (paramInput) {
+      paramInput.value = param.text;
+    }
+  });
 }
+
 
 function decode() {
   const input = document.getElementById('dencoder').value;
@@ -260,7 +273,8 @@ function parseCurl(curlCommand) {
   }
 
   // Token
-  const tokenMatch = curlCommand.match(/-H\s+'Authorization:\s*Bearer\s+([^']+)'/i);
+  const tokenMatch = curlCommand.match(/-H\s+['"]Authorization:\s*Bearer\s+([^'"]+)['"]/) ||
+                     curlCommand.match(/--header\s+['"]Authorization:\s*Bearer\s+([^'"]+)['"]/);
   if (tokenMatch) {
     const token = tokenMatch[1];
     document.getElementById('apiToken').value = token;
@@ -333,10 +347,38 @@ function updateFromCodeSnippet() {
 
   // Atualizar os campos principais
   document.getElementById('url').value = url.replace(/\/api\/v1\/messages$/, '');
-  document.getElementById('authToken').value = authToken;
+  
+  // Não atualizar o authToken se já existir um valor
+  const existingAuthToken = document.getElementById('authToken').value;
+  if (!existingAuthToken) {
+    document.getElementById('authToken').value = authToken;
+  }
+  // Salvar os dados atualizados
+  saveFormData();
 
   showNotification('Campos atualizados com sucesso!', 'success');
 }
+
+// Nova função para salvar os dados do formulário
+function saveFormData() {
+  localStorage.setItem('url', document.getElementById('url').value);
+  localStorage.setItem('authToken', document.getElementById('authToken').value);
+  localStorage.setItem('number', document.getElementById('number').value);
+  localStorage.setItem('serviceId', document.getElementById('serviceId').value);
+  localStorage.setItem('hsmId', document.getElementById('hsmId').value);
+  localStorage.setItem('paramCount', document.getElementById('paramCount').value);
+  
+  const params = [];
+  const paramCount = parseInt(document.getElementById('paramCount').value);
+  for (let i = 0; i < paramCount; i++) {
+    const paramInput = document.querySelector(`input[name='param${i}']`);
+    if (paramInput) {
+      params.push({ text: paramInput.value });
+    }
+  }
+  localStorage.setItem('parameters', JSON.stringify(params));
+}
+
 
 async function sendApiRequest() {
   const url = document.getElementById('apiUrl').value;
