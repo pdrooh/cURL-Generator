@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de cURL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <h1>Gerador de cURL</h1>
+    <div class="navbar-right">
+      <a href="https://documenter.getpostman.com/view/24605757/2sA3BhfaDg#3729dfa6-0eb7-4981-88fe-8337779b7512" target="_blank" class="docs-link">Documentação</a>
+      <button id="themeToggle" class="theme-toggle">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="generator card">
+      <h2>Gerador</h2>
+      <form id="textTemplateForm">
+        <div class="input-group">
+          <input type="text" id="url" name="url" required placeholder=" ">
+          <label for="url">URL</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="authToken" name="authToken" required placeholder=" ">
+          <label for="authToken">Token de Autorização</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="number" name="number" required placeholder=" ">
+          <label for="number">Número do Contato</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="serviceId" name="serviceId" required placeholder=" ">
+          <label for="serviceId">ID da Conexão</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="hsmId" name="hsmId" required placeholder=" ">
+          <label for="hsmId">ID do Template</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="paramCount" name="paramCount" required min="1" max="5" placeholder=" " onchange="updateParameterFields()">
+          <label for="paramCount">Quantidade de Parâmetros</label>
+        </div>        
+        <div id="parametros-container"></div>
+        <button type="submit">Gerar cURL</button>
+      </form>
+    </div>
+    <div class="result card">
+      <h2>Resultado</h2>
+      <pre id="curlOutput"></pre>
+      <button onclick="copyToClipboard()">Copiar cURL</button>
+    </div>
+    <div class="decoder card">
+      <h2>Decoder/Encoder de URL</h2>
+      <div class="input-group">
+        <input type="text" id="dencoder" placeholder=" ">
+        <label for="dencoder">URL para Decodificar/Codificar</label>
+      </div>
+      <div class="button-group">
+        <button onclick="decode()">Decodificar</button>
+        <button onclick="encode()">Codificar</button>
+        <button onclick="copyEncoded()" class="copy-button" title="Copiar URL codificada">
+          <i class="fas fa-copy"></i>
+        </button>
+      </div>
+    </div>
+    <div class="card api-tester">
+      <h2>Envio de API</h2>
+      <div class="input-group">
+        <input type="text" id="apiUrl" placeholder=" ">
+        <label for="apiUrl">URL da API ou comando cURL</label>
+      </div>
+      <div class="input-group">
+        <select id="apiMethod">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+        <label for="apiMethod">Método</label>
+      </div>
+      <div class="input-group">
+        <input type="text" id="apiToken" placeholder=" ">
+        <label for="apiToken">Token de Autorização</label>
+      </div>
+      <div class="input-group">
+        <textarea id="apiHeaders" placeholder="Headers (um por linha)"></textarea>
+        <label for="apiHeaders">Headers</label>
+      </div>
+      <div class="input-group">
+        <textarea id="apiBody" placeholder="Body da requisição"></textarea>
+        <label for="apiBody">Body</label>
+      </div>
+      <button id="sendApiRequest">Enviar Requisição</button>
+      <div class="input-group">
+        <textarea id="codeSnippet" rows="10" cols="50" placeholder=" "></textarea>
+        <label for="codeSnippet">Code Snippet (cURL)</label>
+      </div>
+      <button id="updateFromSnippet">Atualizar da Snippet</button>
+      <div class="api-result">
+        <div id="statusCode"></div>
+        <pre id="apiOutput"></pre>
+      </div>
+    </div>
+
+    <div id="apiResultBox" style="display: none;">
+      <h3>Resultado da API</h3>
+      <p id="apiStatus"></p>
+      <p id="apiDuration"></p>
+      <h4>Headers:</h4>
+      <div id="apiResponseHeaders"></div>
+      <h4>Body:</h4>
+      <pre id="apiResponseBody"></pre>
+    </div>
+    
+  </div>
+
+  <div class="signature">
+    <p>Desenvolvido por Pedro Rodrigues</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
