@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadFormData();
   document.getElementById('textTemplateForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    generateCurl();
+    generateCode();
   });
 
   // Configurar o alternador de tema
@@ -103,13 +103,14 @@ function updateParameterFields() {
   });
 }
 
-function generateCurl() {
+function generateCode() {
   let url = document.getElementById('url').value;
   const authToken = document.getElementById('authToken').value;
   const number = document.getElementById('number').value;
   const serviceId = document.getElementById('serviceId').value;
   const hsmId = document.getElementById('hsmId').value;
   const paramCount = parseInt(document.getElementById('paramCount').value);
+  const language = document.getElementById('languageSelect').value;
 
   // Verificar se a URL começa com "https://"
   if (!url.startsWith('https://')) {
@@ -125,28 +126,51 @@ function generateCurl() {
     });
   }
 
-  const curlCommand = `curl --location -g '${url}/api/v1/messages' \\
---header 'Content-Type: application/json' \\
---header 'Authorization: Bearer ${authToken}' \\
---data '{
-"type": "chat",
-"number": "${number}",
-"serviceId": "${serviceId}",
-"hsmId": "${hsmId}",
-"files": [],
-"uploadingFiles": false,
-"replyTo": null,
-"parameters": [
-{
-  "type": "body",
-  "parameters": ${JSON.stringify(parameters, null, 2)}
-}
-],
-"file": {}
-}'`;
+  const body = {
+    type: "chat",
+    number: number,
+    serviceId: serviceId,
+    hsmId: hsmId,
+    files: [],
+    uploadingFiles: false,
+    replyTo: null,
+    parameters: [
+      {
+        type: "body",
+        parameters: parameters
+      }
+    ],
+    file: {}
+  };
 
-  document.getElementById('curlOutput').textContent = curlCommand;
-  document.getElementById('codeSnippet').value = curlCommand;
+  let code = '';
+
+  switch (language) {
+    case 'curl':
+      code = generateCurlCode(url, authToken, body);
+      break;
+    case 'python':
+      code = generatePythonCode(url, authToken, body);
+      break;
+    case 'javascript':
+      code = generateJavaScriptCode(url, authToken, body);
+      break;
+    case 'php':
+      code = generatePhpCode(url, authToken, body);
+      break;
+  }
+
+  const codeOutput = document.getElementById('codeOutput');
+  codeOutput.innerHTML = ''; // Limpar o conteúdo anterior
+
+  const pre = document.createElement('pre');
+  const codeElement = document.createElement('code');
+  codeElement.className = `language-${language}`;
+  codeElement.textContent = code;
+  pre.appendChild(codeElement);
+  codeOutput.appendChild(pre);
+
+  document.getElementById('codeSnippet').value = code;
 
   // Salvar dados no localStorage
   localStorage.setItem('url', url);
@@ -157,11 +181,86 @@ function generateCurl() {
   localStorage.setItem('paramCount', paramCount);
   localStorage.setItem('parameters', JSON.stringify(parameters));
 
-  showNotification('cURL gerado com sucesso!', 'success');
+  showNotification('Código gerado com sucesso!', 'success');
+
+  // Se você estiver usando uma biblioteca de highlight de sintaxe como Prism.js, você pode chamar a função de highlight aqui
+  // Por exemplo: Prism.highlightElement(codeElement);
+}
+
+
+function generateCurlCode(url, authToken, body) {
+  return `curl --location -g '${url}/api/v1/messages' \\
+--header 'Content-Type: application/json' \\
+--header 'Authorization: Bearer ${authToken}' \\
+--data '${JSON.stringify(body, null, 2)}'`;
+}
+
+function generatePythonCode(url, authToken, body) {
+  return `import requests
+import json
+
+url = "${url}/api/v1/messages"
+
+payload = json.dumps(${JSON.stringify(body, null, 2)})
+headers = {
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer ${authToken}'
+}
+
+response = requests.request("POST", url, headers=headers, data=payload)
+
+print(response.text)`;
+}
+
+function generateJavaScriptCode(url, authToken, body) {
+  return `var myHeaders = new Headers();
+myHeaders.append("Content-Type", "application/json");
+myHeaders.append("Authorization", "Bearer ${authToken}");
+
+var raw = JSON.stringify(${JSON.stringify(body, null, 2)});
+
+var requestOptions = {
+  method: 'POST',
+  headers: myHeaders,
+  body: raw,
+  redirect: 'follow'
+};
+
+fetch("${url}/api/v1/messages", requestOptions)
+  .then(response => response.text())
+  .then(result => console.log(result))
+  .catch(error => console.log('error', error));`;
+}
+
+function generatePhpCode(url, authToken, body) {
+  return `<?php
+
+$curl = curl_init();
+
+curl_setopt_array($curl, array(
+  CURLOPT_URL => '${url}/api/v1/messages',
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => '',
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 0,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => 'POST',
+  CURLOPT_POSTFIELDS => '${JSON.stringify(body)}',
+  CURLOPT_HTTPHEADER => array(
+    'Content-Type: application/json',
+    'Authorization: Bearer ${authToken}'
+  ),
+));
+
+$response = curl_exec($curl);
+
+curl_close($curl);
+echo $response;`;
 }
 
 function copyToClipboard() {
-  const output = document.getElementById('curlOutput');
+  const output = document.getElementById('codeOutput');
   navigator.clipboard.writeText(output.textContent).then(() => {
     showNotification('Código copiado para a área de transferência!', 'success');
   }).catch(err => {
@@ -200,325 +299,172 @@ function loadFormData() {
   });
 }
 
+function showNotification(message, type) {
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+}
 
 function decode() {
-  const input = document.getElementById('dencoder').value;
-  try {
-    const decoded = decodeURIComponent(input);
-    document.getElementById('dencoder').value = decoded;
-    showNotification('URL decodificada com sucesso!', 'success');
-  } catch (e) {
-    showNotification('Erro ao decodificar: ' + e.message, 'error');
-  }
+  const input = document.getElementById('dencoder');
+  input.value = decodeURIComponent(input.value);
 }
 
 function encode() {
-  const input = document.getElementById('dencoder').value;
-  const encoded = encodeURIComponent(input);
-  document.getElementById('dencoder').value = encoded;
-  showNotification('URL codificada com sucesso!', 'success');
-}
-
-function showNotification(message, type) {
-  const notification = document.createElement('div');
-  notification.textContent = message;
-  notification.className = `notification ${type}`;
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.classList.add('show');
-    setTimeout(() => {
-      notification.classList.remove('show');
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    }, 2700);
-  }, 100);
+  const input = document.getElementById('dencoder');
+  input.value = encodeURIComponent(input.value);
 }
 
 function copyEncoded() {
-  const encodedText = document.getElementById('dencoder').value;
-  navigator.clipboard.writeText(encodedText).then(() => {
-    showNotification('URL codificada copiada para a área de transferência!', 'success');
+  const input = document.getElementById('dencoder');
+  navigator.clipboard.writeText(input.value).then(() => {
+    showNotification('URL copiada para a área de transferência!', 'success');
   }).catch(err => {
-    console.error('Erro ao copiar a URL codificada: ', err);
-    showNotification('Erro ao copiar a URL codificada', 'error');
+    console.error('Erro ao copiar a URL: ', err);
+    showNotification('Erro ao copiar a URL', 'error');
   });
 }
 
-function handleCurlPaste(event) {
-  const pastedText = (event.clipboardData || window.clipboardData).getData('text');
-  if (pastedText.trim().toLowerCase().startsWith('curl')) {
-    event.preventDefault();
-    document.getElementById('codeSnippet').value = pastedText;
-    parseCurl(pastedText);
+function sendApiRequest() {
+  const url = document.getElementById('apiUrl').value;
+  const method = document.getElementById('apiMethod').value;
+  const token = document.getElementById('apiToken').value;
+  const headers = parseHeaders(document.getElementById('apiHeaders').value);
+  const body = document.getElementById('apiBody').value;
+
+  // Salvar o token no localStorage
+  localStorage.setItem('apiToken', token);
+
+  headers['Authorization'] = `Bearer ${token}`;
+
+  const startTime = new Date();
+
+  fetch(url, {
+    method: method,
+    headers: headers,
+    body: method !== 'GET' && method !== 'HEAD' ? body : undefined
+  })
+  .then(response => {
+    const endTime = new Date();
+    const duration = endTime - startTime;
+
+    // Processar e exibir os headers da resposta
+    const responseHeaders = {};
+    for (let pair of response.headers.entries()) {
+      responseHeaders[pair[0]] = pair[1];
+    }
+    displayResponseHeaders(responseHeaders);
+
+    // Exibir o status da resposta
+    document.getElementById('apiStatus').textContent = `Status: ${response.status} ${response.statusText}`;
+    document.getElementById('apiDuration').textContent = `Duração: ${duration}ms`;
+
+    return response.text();
+  })
+  .then(data => {
+    try {
+      // Tentar fazer o parse do JSON
+      const jsonData = JSON.parse(data);
+      document.getElementById('apiResponseBody').textContent = JSON.stringify(jsonData, null, 2);
+    } catch (e) {
+      // Se não for JSON, exibir como texto simples
+      document.getElementById('apiResponseBody').textContent = data;
+    }
+    document.getElementById('apiResultBox').style.display = 'block';
+  })
+  .catch(error => {
+    console.error('Erro:', error);
+    document.getElementById('apiResponseBody').textContent = `Erro: ${error.message}`;
+    document.getElementById('apiResultBox').style.display = 'block';
+  });
+}
+
+function parseHeaders(headersString) {
+  const headers = {};
+  const lines = headersString.split('\n');
+  lines.forEach(line => {
+    const [key, value] = line.split(':').map(item => item.trim());
+    if (key && value) {
+      headers[key] = value;
+    }
+  });
+  return headers;
+}
+
+function displayResponseHeaders(headers) {
+  const headerContainer = document.getElementById('apiResponseHeaders');
+  headerContainer.innerHTML = '';
+  for (const [key, value] of Object.entries(headers)) {
+    const headerElement = document.createElement('div');
+    headerElement.textContent = `${key}: ${value}`;
+    headerContainer.appendChild(headerElement);
   }
 }
 
-function parseCurl(curlCommand) {
-  // URL
-  const urlMatch = curlCommand.match(/'(https?:\/\/[^']+)'/);
+function handleCurlPaste(event) {
+  const pastedText = event.clipboardData.getData('text');
+  if (pastedText.trim().toLowerCase().startsWith('curl')) {
+    event.preventDefault();
+    parseCurlCommand(pastedText);
+  }
+}
+
+function parseCurlCommand(curlCommand) {
+  // Expressões regulares para extrair informações do comando cURL
+  const urlRegex = /'(https?:\/\/[^']+)'/;
+  const headerRegex = /-H '([^:]+): ([^']+)'/g;
+  const dataRegex = /--data '(.+)'/s;
+
+  // Extrair URL
+  const urlMatch = curlCommand.match(urlRegex);
   if (urlMatch) {
     document.getElementById('apiUrl').value = urlMatch[1];
   }
 
-  // Método
-  const methodMatch = curlCommand.match(/-X\s+(\w+)/i);
-  if (methodMatch) {
-    document.getElementById('apiMethod').value = methodMatch[1].toUpperCase();
-  } else if (curlCommand.includes('--data') || curlCommand.includes('-d')) {
-    document.getElementById('apiMethod').value = 'POST';
-  } else {
-    document.getElementById('apiMethod').value = 'GET';
+  // Extrair headers
+  const headers = [];
+  let headerMatch;
+  while ((headerMatch = headerRegex.exec(curlCommand)) !== null) {
+    headers.push(`${headerMatch[1]}: ${headerMatch[2]}`);
   }
+  document.getElementById('apiHeaders').value = headers.join('\n');
 
-  // Token
-  const tokenMatch = curlCommand.match(/-H\s+['"]Authorization:\s*Bearer\s+([^'"]+)['"]/) ||
-                     curlCommand.match(/--header\s+['"]Authorization:\s*Bearer\s+([^'"]+)['"]/);
-  if (tokenMatch) {
-    const token = tokenMatch[1];
+  // Extrair o token de autorização
+  const authHeader = headers.find(h => h.toLowerCase().startsWith('authorization:'));
+  if (authHeader) {
+    const token = authHeader.split(' ')[2];
     document.getElementById('apiToken').value = token;
-    document.getElementById('authToken').value = token; // Atualiza também o campo authToken
-    localStorage.setItem('apiToken', token); // Salvar o token
   }
 
-  // Headers
-  const headers = curlCommand.match(/-H\s+'([^']+)'/g);
-  if (headers) {
-    const headerTextarea = document.getElementById('apiHeaders');
-    if (headerTextarea) {
-      const headerLines = headers
-        .map(h => h.match(/-H\s+'(.+)'/)[1])
-        .filter(h => !h.toLowerCase().startsWith('authorization:')); // Excluir o header de autorização
-      headerTextarea.value = headerLines.join('\n');
-    }
+  // Extrair dados (body)
+  const dataMatch = curlCommand.match(dataRegex);
+  if (dataMatch) {
+    document.getElementById('apiBody').value = dataMatch[1];
   }
 
-  // Body
-  const bodyMatch = curlCommand.match(/--data\s+'(.+)'/s) || curlCommand.match(/--data\s+"(.+)"/s);
-  if (bodyMatch) {
-    const bodyTextarea = document.getElementById('apiBody');
-    if (bodyTextarea) {
-      try {
-        const bodyJson = JSON.parse(bodyMatch[1]);
-        bodyTextarea.value = JSON.stringify(bodyJson, null, 2);
-      } catch (e) {
-        bodyTextarea.value = bodyMatch[1];
-      }
-    }
-  }
+  // Definir o método (assumindo POST se houver dados, caso contrário GET)
+  document.getElementById('apiMethod').value = dataMatch ? 'POST' : 'GET';
 
-  // Atualizar o Code Snippet
+  // Atualizar o campo de Code Snippet
   document.getElementById('codeSnippet').value = curlCommand;
-
-  showNotification('Comando cURL analisado com sucesso!', 'success');
 }
 
 function updateFromCodeSnippet() {
-  const codeSnippet = document.getElementById('codeSnippet').value;
-  parseCurl(codeSnippet);
-  
-  // Atualizar os campos do formulário principal
-  const url = document.getElementById('apiUrl').value;
-  const authToken = document.getElementById('apiToken').value;
-  
-  // Extrair informações do body, se disponível
-  const bodyTextarea = document.getElementById('apiBody');
-  if (bodyTextarea && bodyTextarea.value) {
-    try {
-      const bodyJson = JSON.parse(bodyTextarea.value);
-      if (bodyJson.number) document.getElementById('number').value = bodyJson.number;
-      if (bodyJson.serviceId) document.getElementById('serviceId').value = bodyJson.serviceId;
-      if (bodyJson.hsmId) document.getElementById('hsmId').value = bodyJson.hsmId;
-      if (bodyJson.parameters && bodyJson.parameters[0] && bodyJson.parameters[0].parameters) {
-        const params = bodyJson.parameters[0].parameters;
-        document.getElementById('paramCount').value = params.length;
-        updateParameterFields();
-        params.forEach((param, index) => {
-          if (param.text) {
-            document.querySelector(`input[name='param${index}']`).value = param.text;
-          }
-        });
-      }
-    } catch (e) {
-      console.error('Erro ao analisar o corpo JSON:', e);
-    }
+  const snippet = document.getElementById('codeSnippet').value;
+  if (snippet.trim().toLowerCase().startsWith('curl')) {
+    parseCurlCommand(snippet);
+  } else {
+    showNotification('O snippet deve ser um comando cURL válido', 'error');
   }
-
-  // Atualizar os campos principais
-  document.getElementById('url').value = url.replace(/\/api\/v1\/messages$/, '');
-  
-  // Não atualizar o authToken se já existir um valor
-  const existingAuthToken = document.getElementById('authToken').value;
-  if (!existingAuthToken) {
-    document.getElementById('authToken').value = authToken;
-  }
-  // Salvar os dados atualizados
-  saveFormData();
-
-  showNotification('Campos atualizados com sucesso!', 'success');
-}
-
-// Nova função para salvar os dados do formulário
-function saveFormData() {
-  localStorage.setItem('url', document.getElementById('url').value);
-  localStorage.setItem('authToken', document.getElementById('authToken').value);
-  localStorage.setItem('number', document.getElementById('number').value);
-  localStorage.setItem('serviceId', document.getElementById('serviceId').value);
-  localStorage.setItem('hsmId', document.getElementById('hsmId').value);
-  localStorage.setItem('paramCount', document.getElementById('paramCount').value);
-  
-  const params = [];
-  const paramCount = parseInt(document.getElementById('paramCount').value);
-  for (let i = 0; i < paramCount; i++) {
-    const paramInput = document.querySelector(`input[name='param${i}']`);
-    if (paramInput) {
-      params.push({ text: paramInput.value });
-    }
-  }
-  localStorage.setItem('parameters', JSON.stringify(params));
-}
-
-
-async function sendApiRequest() {
-  const url = document.getElementById('apiUrl').value;
-  const method = document.getElementById('apiMethod').value;
-  const token = document.getElementById('apiToken').value;
-  const body = document.getElementById('apiBody').value;
-
-  // Salvar o token atual
-  localStorage.setItem('apiToken', token);
-
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  try {
-    const startTime = new Date();
-    const response = await fetch(url, {
-      method: method,
-      headers: headers,
-      body: method !== 'GET' && method !== 'HEAD' ? body : undefined
-    });
-    const endTime = new Date();
-    const duration = endTime - startTime;
-
-    const statusCode = response.status;
-    const responseData = await response.text();
-    const responseHeaders = Array.from(response.headers.entries());
-
-    // Criar o objeto de resultado
-    const result = {
-      status: statusCode,
-      duration: `${duration}ms`,
-      headers: Object.fromEntries(responseHeaders),
-      body: tryParseJSON(responseData)
-    };
-
-    // Exibir o resultado
-    displayApiResult(result);
-
-  } catch (error) {
-    displayApiError(error);
-  }
-}
-
-function displayApiResult(result) {
-  const resultBox = document.getElementById('apiResultBox');
-  const statusElement = document.getElementById('apiStatus');
-  const durationElement = document.getElementById('apiDuration');
-  const headersElement = document.getElementById('apiResponseHeaders');
-  const bodyElement = document.getElementById('apiResponseBody');
-
-  statusElement.textContent = `Status: ${result.status}`;
-  statusElement.className = getStatusClass(result.status);
-  
-  durationElement.textContent = `Duração: ${result.duration}`;
-
-  headersElement.innerHTML = formatHeaders(result.headers);
-  
-  bodyElement.innerHTML = typeof result.body === 'object' 
-    ? syntaxHighlight(JSON.stringify(result.body, null, 2))
-    : escapeHtml(result.body);
-
-  resultBox.style.display = 'block';
-}
-
-function displayApiError(error) {
-  const resultBox = document.getElementById('apiResultBox');
-  const statusElement = document.getElementById('apiStatus');
-  const bodyElement = document.getElementById('apiResponseBody');
-
-  statusElement.textContent = 'Erro';
-  statusElement.className = 'error';
-  
-  bodyElement.textContent = error.message;
-
-  resultBox.style.display = 'block';
-}
-
-function formatHeaders(headers) {
-  return Object.entries(headers)
-    .map(([key, value]) => `<strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}`)
-    .join('<br>');
-}
-
-function getStatusClass(status) {
-  if (status >= 200 && status < 300) return 'success';
-  if (status >= 300 && status < 400) return 'redirect';
-  if (status >= 400 && status < 500) return 'client-error';
-  if (status >= 500) return 'server-error';
-  return '';
-}
-
-function tryParseJSON(str) {
-  try {
-    return JSON.parse(str);
-  } catch (e) {
-    return str;
-  }
-}
-
-function escapeHtml(unsafe) {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function syntaxHighlight(json) {
-  if (typeof json !== 'string') {
-    json = JSON.stringify(json, null, 2);
-  }
-  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-    var cls = 'number';
-    if (/^"/.test(match)) {
-      if (/:$/.test(match)) {
-        cls = 'key';
-      } else {
-        cls = 'string';
-      }
-    } else if (/true|false/.test(match)) {
-      cls = 'boolean';
-    } else if (/null/.test(match)) {
-      cls = 'null';
-    }
-    return '<span class="' + cls + '">' + match + '</span>';
-  });
 }
 
 function copyApiResponse() {
-  const apiOutput = document.getElementById('apiResponseBody');
-  const textToCopy = apiOutput.innerText || apiOutput.textContent;
-
-  navigator.clipboard.writeText(textToCopy).then(() => {
+  const responseBody = document.getElementById('apiResponseBody').textContent;
+  navigator.clipboard.writeText(responseBody).then(() => {
     showNotification('Resposta da API copiada para a área de transferência!', 'success');
   }).catch(err => {
     console.error('Erro ao copiar a resposta da API: ', err);
@@ -526,82 +472,3 @@ function copyApiResponse() {
   });
 }
 
-// Adicione um event listener para o botão de copiar resposta da API
-document.addEventListener('DOMContentLoaded', () => {
-  const copyApiResponseButton = document.getElementById('copyApiResponse');
-  if (copyApiResponseButton) {
-    copyApiResponseButton.addEventListener('click', copyApiResponse);
-  }
-});
-
-// Nova função para exibir o resultado da API abaixo da área de texto do Snippet
-function displayApiResultBelowSnippet(result) {
-  const snippetTextarea = document.getElementById('codeSnippet');
-  let resultContainer = document.getElementById('apiResultContainer');
-  
-  if (!resultContainer) {
-    resultContainer = document.createElement('div');
-    resultContainer.id = 'apiResultContainer';
-    snippetTextarea.parentNode.insertBefore(resultContainer, snippetTextarea.nextSibling);
-  }
-
-  resultContainer.innerHTML = `
-    <h3>Resultado da API</h3>
-    <p><strong>Status:</strong> <span class="${getStatusClass(result.status)}">${result.status}</span></p>
-    <p><strong>Duração:</strong> ${result.duration}</p>
-    <h4>Headers:</h4>
-    <pre>${formatHeaders(result.headers)}</pre>
-    <h4>Body:</h4>
-    <pre>${typeof result.body === 'object' ? syntaxHighlight(JSON.stringify(result.body, null, 2)) : escapeHtml(result.body)}</pre>
-  `;
-
-  resultContainer.style.display = 'block';
-}
-
-// Modificar a função sendApiRequest para usar a nova função de exibição
-async function sendApiRequest() {
-  const url = document.getElementById('apiUrl').value;
-  const method = document.getElementById('apiMethod').value;
-  const token = document.getElementById('apiToken').value;
-  const body = document.getElementById('apiBody').value;
-
-  // Salvar o token atual
-  localStorage.setItem('apiToken', token);
-
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  try {
-    const startTime = new Date();
-    const response = await fetch(url, {
-      method: method,
-      headers: headers,
-      body: method !== 'GET' && method !== 'HEAD' ? body : undefined
-    });
-    const endTime = new Date();
-    const duration = endTime - startTime;
-
-    const statusCode = response.status;
-    const responseData = await response.text();
-    const responseHeaders = Array.from(response.headers.entries());
-
-    // Criar o objeto de resultado
-    const result = {
-      status: statusCode,
-      duration: `${duration}ms`,
-      headers: Object.fromEntries(responseHeaders),
-      body: tryParseJSON(responseData)
-    };
-
-    // Exibir o resultado usando a nova função
-    displayApiResultBelowSnippet(result);
-
-  } catch (error) {
-    displayApiError(error);
-  }
-}

@@ -325,6 +325,52 @@ button:hover {
   border-color: #444;
 }
 
+#languageSelect {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+  font-size: 1rem;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+}
+
+#languageSelect:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+#codeOutput {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#codeOutput pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+#codeOutput code {
+  display: block;
+  padding: 1em;
+  background-color: #f4f4f4;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Estilo para tema escuro */
+.dark-theme #codeOutput code {
+  background-color: #2d2d2d;
+  color: #f4f4f4;
+}
+
+
 @media (max-width: 768px) {
   .container {
     flex-direction: column;

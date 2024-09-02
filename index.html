@@ -48,13 +48,22 @@
           <label for="paramCount">Quantidade de Parâmetros</label>
         </div>        
         <div id="parametros-container"></div>
-        <button type="submit">Gerar cURL</button>
+        <div class="input-group">
+          <select id="languageSelect">
+            <option value="curl">cURL</option>
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="php">PHP</option>
+          </select>
+          <label for="languageSelect">Linguagem</label>
+        </div>
+        <button type="submit">Gerar Código</button>
       </form>
     </div>
     <div class="result card">
       <h2>Resultado</h2>
-      <pre id="curlOutput"></pre>
-      <button onclick="copyToClipboard()">Copiar cURL</button>
+      <pre id="codeOutput"></pre>
+      <button onclick="copyToClipboard()">Copiar Código</button>
     </div>
     <div class="decoder card">
       <h2>Decoder/Encoder de URL</h2>
@@ -122,7 +131,7 @@
   </div>
 
   <div class="signature">
-    <p>Desenvolvido por Pedro Rodrigues</p>
+    <p>Desenvolvido por Pedro Henrique Rodrigues</p>
   </div>
 
   <script src="script.js"></script>
