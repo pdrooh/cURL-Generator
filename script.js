@@ -234,11 +234,23 @@ function copyEncoded() {
 }
 
 function handleCurlPaste(event) {
-  const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+  const pastedText = event.clipboardData.getData('text');
   if (pastedText.trim().toLowerCase().startsWith('curl')) {
     event.preventDefault();
+    const curlCommand = parseCurlCommand(pastedText);
+    document.getElementById('apiUrl').value = curlCommand.url;
+    document.getElementById('apiMethod').value = curlCommand.method;
+    document.getElementById('apiBody').value = curlCommand.data;
+    
+    // Preencher o Bearer token
+    if (curlCommand.headers['Authorization']) {
+      const token = curlCommand.headers['Authorization'].replace('Bearer ', '');
+      document.getElementById('apiToken').value = token;
+      document.getElementById('authToken').value = token; // Preencher também o campo authToken, se existir
+    }
+
+    // Atualizar o textarea do Code Snippet com o comando cURL
     document.getElementById('codeSnippet').value = pastedText;
-    parseCurl(pastedText);
   }
 }
 
@@ -301,8 +313,20 @@ function parseCurl(curlCommand) {
 }
 
 function updateFromCodeSnippet() {
-  const codeSnippet = document.getElementById('codeSnippet').value;
-  parseCurl(codeSnippet);
+  const snippetText = document.getElementById('codeSnippet').value;
+  if (snippetText.trim().toLowerCase().startsWith('curl')) {
+    const curlCommand = parseCurlCommand(snippetText);
+    document.getElementById('apiUrl').value = curlCommand.url;
+    document.getElementById('apiMethod').value = curlCommand.method;
+    document.getElementById('apiBody').value = curlCommand.data;
+    
+    // Preencher o Bearer token
+    if (curlCommand.headers['Authorization']) {
+      const token = curlCommand.headers['Authorization'].replace('Bearer ', '');
+      document.getElementById('apiToken').value = token;
+      document.getElementById('authToken').value = token; // Preencher também o campo authToken, se existir
+    }
+  }
   
   // Atualizar os campos do formulário principal
   const url = document.getElementById('apiUrl').value;
@@ -336,6 +360,32 @@ function updateFromCodeSnippet() {
   document.getElementById('authToken').value = authToken;
 
   showNotification('Campos atualizados com sucesso!', 'success');
+}
+
+function parseCurlCommand(curlCommand) {
+  const result = {
+    method: 'GET',
+    url: '',
+    headers: {},
+    data: ''
+  };
+
+  const parts = curlCommand.split(' ');
+  for (let i = 1; i < parts.length; i++) {
+    const part = parts[i];
+    if (part === '-X' || part === '--request') {
+      result.method = parts[++i];
+    } else if (part === '-H' || part === '--header') {
+      const header = parts[++i].split(':');
+      result.headers[header[0].trim()] = header[1].trim();
+    } else if (part === '-d' || part === '--data') {
+      result.data = parts[++i];
+    } else if (!part.startsWith('-')) {
+      result.url = part.replace(/['"]/g, '');
+    }
+  }
+
+  return result;
 }
 
 async function sendApiRequest() {
@@ -413,16 +463,9 @@ function displayApiError(error) {
 
   statusElement.textContent = 'Erro';
   statusElement.className = 'error';
-  
   bodyElement.textContent = error.message;
 
   resultBox.style.display = 'block';
-}
-
-function formatHeaders(headers) {
-  return Object.entries(headers)
-    .map(([key, value]) => `<strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}`)
-    .join('<br>');
 }
 
 function getStatusClass(status) {
@@ -433,27 +476,13 @@ function getStatusClass(status) {
   return '';
 }
 
-function tryParseJSON(str) {
-  try {
-    return JSON.parse(str);
-  } catch (e) {
-    return str;
-  }
-}
-
-function escapeHtml(unsafe) {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+function formatHeaders(headers) {
+  return Object.entries(headers)
+    .map(([key, value]) => `<strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}`)
+    .join('<br>');
 }
 
 function syntaxHighlight(json) {
-  if (typeof json !== 'string') {
-    json = JSON.stringify(json, null, 2);
-  }
   json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
     var cls = 'number';
@@ -472,9 +501,30 @@ function syntaxHighlight(json) {
   });
 }
 
+function escapeHtml(unsafe) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function tryParseJSON(jsonString) {
+  try {
+    const o = JSON.parse(jsonString);
+    if (o && typeof o === "object") {
+      return o;
+    }
+  }
+  catch (e) { }
+
+  return jsonString;
+}
+
 function copyApiResponse() {
-  const apiOutput = document.getElementById('apiResponseBody');
-  const textToCopy = apiOutput.innerText || apiOutput.textContent;
+  const bodyElement = document.getElementById('apiResponseBody');
+  const textToCopy = bodyElement.textContent || bodyElement.innerText;
 
   navigator.clipboard.writeText(textToCopy).then(() => {
     showNotification('Resposta da API copiada para a área de transferência!', 'success');
@@ -482,84 +532,4 @@ function copyApiResponse() {
     console.error('Erro ao copiar a resposta da API: ', err);
     showNotification('Erro ao copiar a resposta da API', 'error');
   });
-}
-
-// Adicione um event listener para o botão de copiar resposta da API
-document.addEventListener('DOMContentLoaded', () => {
-  const copyApiResponseButton = document.getElementById('copyApiResponse');
-  if (copyApiResponseButton) {
-    copyApiResponseButton.addEventListener('click', copyApiResponse);
-  }
-});
-
-// Nova função para exibir o resultado da API abaixo da área de texto do Snippet
-function displayApiResultBelowSnippet(result) {
-  const snippetTextarea = document.getElementById('codeSnippet');
-  let resultContainer = document.getElementById('apiResultContainer');
-  
-  if (!resultContainer) {
-    resultContainer = document.createElement('div');
-    resultContainer.id = 'apiResultContainer';
-    snippetTextarea.parentNode.insertBefore(resultContainer, snippetTextarea.nextSibling);
-  }
-
-  resultContainer.innerHTML = `
-    <h3>Resultado da API</h3>
-    <p><strong>Status:</strong> <span class="${getStatusClass(result.status)}">${result.status}</span></p>
-    <p><strong>Duração:</strong> ${result.duration}</p>
-    <h4>Headers:</h4>
-    <pre>${formatHeaders(result.headers)}</pre>
-    <h4>Body:</h4>
-    <pre>${typeof result.body === 'object' ? syntaxHighlight(JSON.stringify(result.body, null, 2)) : escapeHtml(result.body)}</pre>
-  `;
-
-  resultContainer.style.display = 'block';
-}
-
-// Modificar a função sendApiRequest para usar a nova função de exibição
-async function sendApiRequest() {
-  const url = document.getElementById('apiUrl').value;
-  const method = document.getElementById('apiMethod').value;
-  const token = document.getElementById('apiToken').value;
-  const body = document.getElementById('apiBody').value;
-
-  // Salvar o token atual
-  localStorage.setItem('apiToken', token);
-
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  try {
-    const startTime = new Date();
-    const response = await fetch(url, {
-      method: method,
-      headers: headers,
-      body: method !== 'GET' && method !== 'HEAD' ? body : undefined
-    });
-    const endTime = new Date();
-    const duration = endTime - startTime;
-
-    const statusCode = response.status;
-    const responseData = await response.text();
-    const responseHeaders = Array.from(response.headers.entries());
-
-    // Criar o objeto de resultado
-    const result = {
-      status: statusCode,
-      duration: `${duration}ms`,
-      headers: Object.fromEntries(responseHeaders),
-      body: tryParseJSON(responseData)
-    };
-
-    // Exibir o resultado usando a nova função
-    displayApiResultBelowSnippet(result);
-
-  } catch (error) {
-    displayApiError(error);
-  }
 }
