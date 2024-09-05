@@ -10,7 +10,7 @@
 </head>
 <body>
   <nav class="navbar">
-    <h1>Gerador de cURL</h1>
+    <h1>Central do Analista</h1>
     <div class="navbar-right">
       <a href="https://documenter.getpostman.com/view/24605757/2sA3BhfaDg#3729dfa6-0eb7-4981-88fe-8337779b7512" target="_blank" class="docs-link">Documentação</a>
       <button id="themeToggle" class="theme-toggle">
@@ -134,6 +134,26 @@
     <p>Desenvolvido por Pedro Henrique Rodrigues</p>
   </div>
 
+
+
+  <script>
+    const typebotInitScript = document.createElement("script");
+typebotInitScript.type = "module";
+typebotInitScript.innerHTML = `import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.2.83/dist/web.js'
+
+Typebot.initBubble({
+  typebot: "chat-gpt-b-sico-7smtgir",
+  apiHost: "https://sendbot.me",
+  previewMessage: {
+    message: "Eu posso ajudar?",
+    avatarUrl:
+      "https://img.lovepik.com/png/20231105/Ant-cute-cartoon-Ant-cartoon-Ant-pictures-illustration_503623_wh860.png",
+  },
+  theme: { button: { backgroundColor: "#007AFF" } },
+});
+`;
+document.body.append(typebotInitScript);
+  </script>
   <script src="script.js"></script>
 </body>
 </html>
