@@ -137,23 +137,20 @@
 
 
   <script>
-    const typebotInitScript = document.createElement("script");
-typebotInitScript.type = "module";
-typebotInitScript.innerHTML = `import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.2.83/dist/web.js'
-
-Typebot.initBubble({
-  typebot: "chat-gpt-b-sico-7smtgir",
-  apiHost: "https://sendbot.me",
-  previewMessage: {
-    message: "Eu posso ajudar?",
-    avatarUrl:
-      "https://img.lovepik.com/png/20231105/Ant-cute-cartoon-Ant-cartoon-Ant-pictures-illustration_503623_wh860.png",
-  },
-  theme: { button: { backgroundColor: "#007AFF" } },
-});
-`;
-document.body.append(typebotInitScript);
-  </script>
+    window.difyChatbotConfig = {
+     token: 'yVA2RNUYFSrJw7Ww'
+    }
+   </script>
+   <script
+    src="https://udify.app/embed.min.js"
+    id="yVA2RNUYFSrJw7Ww"
+    defer>
+   </script>
+   <style>
+     #dify-chatbot-bubble-button {
+       background-color: #1C64F2 !important;
+     }
+   </style>
   <script src="script.js"></script>
 </body>
 </html>
